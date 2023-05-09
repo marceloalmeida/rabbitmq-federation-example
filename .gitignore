@@ -1,0 +1,25 @@
+# Terraform
+##  Local .terraform directories
+**/.terraform/*
+
+## .tfstate files
+*.terraform.lock.hcl
+*.tfplan*
+*.tfstate
+*.tfstate.*
+tfstate
+
+# Other
+## vim swp files
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+## Mac DS_Store files
+*.DS_Store
+
+# Python
+__pycache__
+*.pyc

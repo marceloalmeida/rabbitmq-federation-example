@@ -1,0 +1,78 @@
+version: '3'
+services:
+  rabbitmq-eu-central-1:
+    container_name: rabbitmq-eu-central-1
+    hostname: rabbitmq-eu-central-1
+    image: rabbitmq:3.8-management
+    ports:
+      - 15672:15672
+      - 5672:5672
+    volumes:
+      - type: bind
+        source: ./enabled_plugins
+        target: /etc/rabbitmq/enabled_plugins
+  rabbitmq-eu-west-1:
+    container_name: rabbitmq-eu-west-1
+    hostname: rabbitmq-eu-west-1
+    image: rabbitmq:3.8-management
+    ports:
+      - 15673:15672
+      - 5673:5672
+    volumes:
+      - type: bind
+        source: ./enabled_plugins
+        target: /etc/rabbitmq/enabled_plugins
+    links:
+      - rabbitmq-eu-central-1
+  producer-for-local-consumer:
+    container_name: producer-for-local-consumer
+    build: .
+    command: python /code/producer.py
+    environment:
+      RMQ_HOST: rabbitmq-eu-west-1
+      RMQ_EXCHANGE: test-exchange
+      RMQ_ROUTING_KEY: local
+      RMQ_VHOST: test-vhost
+    volumes:
+      - ./code:/code
+  producer-for-remote-consumer:
+    container_name: producer-for-remote-consumer
+    build: .
+    command: python /code/producer.py
+    environment:
+      RMQ_HOST: rabbitmq-eu-west-1
+      RMQ_EXCHANGE: test-exchange
+      RMQ_ROUTING_KEY: remote
+      RMQ_VHOST: test-vhost
+    volumes:
+      - ./code:/code
+  consumer-local:
+    container_name: consumer-local
+    build: .
+    command: python /code/consumer.py
+    environment:
+      RMQ_HOST: rabbitmq-eu-west-1
+      RMQ_QUEUE: consumed-locally
+      RMQ_VHOST: test-vhost
+    volumes:
+      - ./code:/code
+  consumer-consumed-locally-remote:
+    container_name: consumer-consumed-locally-remote
+    build: .
+    command: python /code/consumer.py
+    environment:
+      RMQ_HOST: rabbitmq-eu-central-1
+      RMQ_QUEUE: consumed-locally
+      RMQ_VHOST: test-vhost
+    volumes:
+      - ./code:/code
+  consumer-remote:
+    container_name: consumer-remote
+    build: .
+    command: python /code/consumer.py
+    environment:
+      RMQ_HOST: rabbitmq-eu-central-1
+      RMQ_QUEUE: consumed-remotelly
+      RMQ_VHOST: test-vhost
+    volumes:
+      - ./code:/code
