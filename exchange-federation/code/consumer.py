@@ -33,7 +33,7 @@ while True:
             )
         )
         channel = connection.channel()
-        channel.basic_qos(prefetch_count=1000)
+        channel.basic_qos(prefetch_count=1)
         channel.basic_consume(queue, on_message, consumer_tag=consumer_tag)
         try:
             channel.start_consuming()
@@ -46,8 +46,8 @@ while True:
         pika.exceptions.ConnectionClosedByBroker,
         pika.exceptions.AMQPConnectionError,
     ):
-        continue
         print("Connection was closed, retrying...", flush=True)
+        continue
     except pika.exceptions.AMQPChannelError as err:
         print("Caught a channel error: {}, stopping...".format(err), flush=True)
         break

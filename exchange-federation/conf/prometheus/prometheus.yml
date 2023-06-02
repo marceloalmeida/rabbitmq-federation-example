@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+- job_name: 'rabbitmq-eu-central-1'
+  static_configs:
+  - targets: ['rabbitmq-eu-central-1-exporter:9419']
+- job_name: 'rabbitmq-eu-west-1'
+  static_configs:
+  - targets: ['rabbitmq-eu-west-1-exporter:9419']
