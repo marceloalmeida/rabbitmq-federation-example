@@ -1,0 +1,119 @@
+version: '3'
+
+services:
+  # rabbitmq-eu-central-1 (+exporter)
+  rabbitmq-eu-central-1:
+    container_name: rabbitmq-eu-central-1
+    hostname: rabbitmq-eu-central-1
+    image: rabbitmq:3.8-management
+    ports:
+      - 15672:15672
+      - 5672:5672
+    volumes:
+      - type: bind
+        source: ./enabled_plugins
+        target: /etc/rabbitmq/enabled_plugins
+  rabbitmq-eu-central-1-exporter:
+    container_name: rabbitmq-eu-central-1-exporter
+    hostname: rabbitmq-eu-central-1-exporter
+    image: kbudde/rabbitmq-exporter:1.0.0-RC19
+    ports:
+      - 9419:9419
+    volumes:
+      - type: bind
+        source: ./conf/rabbitmq-eu-central-1-exporter/rabbitmq.conf
+        target: /conf/rabbitmq.conf
+    depends_on:
+      - rabbitmq-eu-central-1
+  # rabbitmq-eu-west-1 (+exporter)
+  rabbitmq-eu-west-1:
+    container_name: rabbitmq-eu-west-1
+    hostname: rabbitmq-eu-west-1
+    image: rabbitmq:3.8-management
+    ports:
+      - 15673:15672
+      - 5673:5672
+    volumes:
+      - type: bind
+        source: ./enabled_plugins
+        target: /etc/rabbitmq/enabled_plugins
+  rabbitmq-eu-west-1-exporter:
+    container_name: rabbitmq-eu-west-1-exporter
+    hostname: rabbitmq-eu-west-1-exporter
+    image: kbudde/rabbitmq-exporter:1.0.0-RC19
+    ports:
+      - 9420:9419
+    volumes:
+      - type: bind
+        source: ./conf/rabbitmq-eu-west-1-exporter/rabbitmq.conf
+        target: /conf/rabbitmq.conf
+    depends_on:
+      - rabbitmq-eu-west-1
+  # prometheus
+  prometheus:
+    container_name: prometheus
+    hostname: prometheus
+    image: prom/prometheus:v2.44.0
+    ports:
+      - 9090:9090
+    volumes:
+      - type: bind
+        source: ./conf/prometheus/prometheus.yml
+        target: /etc/prometheus/prometheus.yml
+    depends_on:
+      - rabbitmq-eu-central-1
+      - rabbitmq-eu-west-1
+      - rabbitmq-eu-central-1-exporter
+      - rabbitmq-eu-west-1-exporter
+  # producers
+  producer-eu-central-1:
+    container_name: producer-eu-central-1
+    build: .
+    command: python /code/producer.py
+    depends_on:
+      - rabbitmq-eu-central-1
+    environment:
+      RMQ_HOST: rabbitmq-eu-central-1
+      RMQ_EXCHANGE: test-exchange
+      RMQ_PROVIDER_REGION: eu-central-1
+      RMQ_ROUTING_KEY: local
+      RMQ_VHOST: test-vhost
+    volumes:
+      - ./code:/code
+  producer-eu-west-1:
+    container_name: producer-eu-west-1
+    build: .
+    command: python /code/producer.py
+    depends_on:
+      - rabbitmq-eu-west-1
+    environment:
+      RMQ_HOST: rabbitmq-eu-west-1
+      RMQ_EXCHANGE: test-exchange
+      RMQ_PROVIDER_REGION: eu-west-1
+      RMQ_ROUTING_KEY: local
+      RMQ_VHOST: test-vhost
+    volumes:
+      - ./code:/code
+  # consumers
+  consumer-eu-central-1:
+    container_name: consumer-eu-central-1
+    build: .
+    command: python /code/consumer.py
+    environment:
+      RMQ_HOST: rabbitmq-eu-central-1
+      RMQ_QUEUE: consumed-locally
+      RMQ_VHOST: test-vhost
+      RMQ_CONSUMER_TAG: consumer-eu-central-1
+    volumes:
+      - ./code:/code
+  consumer-eu-west-1:
+    container_name: consumer-eu-west-1
+    build: .
+    command: python /code/consumer.py
+    environment:
+      RMQ_HOST: rabbitmq-eu-west-1
+      RMQ_QUEUE: consumed-locally
+      RMQ_VHOST: test-vhost
+      RMQ_CONSUMER_TAG: consumer-eu-west-1
+    volumes:
+      - ./code:/code

@@ -20,6 +20,9 @@ tfstate
 ## Mac DS_Store files
 *.DS_Store
 
+## VSCode
+.vscode
+
 # Python
 __pycache__
 *.pyc

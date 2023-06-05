@@ -13,6 +13,7 @@ port = getenv("RMQ_PORT", "5672")
 vhost = getenv("RMQ_VHOST", "/")
 exchange = getenv("RMQ_EXCHANGE")
 routing_key = getenv("RMQ_ROUTING_KEY")
+provider_region = getenv("RMQ_PROVIDER_REGION")
 
 while True:
     try:
@@ -42,6 +43,7 @@ while True:
             routing_key=routing_key,
             body=dumps(
                 {
+                    "header": provider_region,
                     "sleep_seconds": sleep_seconds,
                     "routing_key": routing_key,
                     "time": datetime.now().strftime("%Y/%m/%d - %H:%M:%S:%f"),
