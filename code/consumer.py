@@ -21,7 +21,8 @@ def on_message(channel, method_frame, header_frame, body):
         print("{} - {}".format(method_frame.delivery_tag, body), flush=True)
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)
     except Exception as e:
-        print(e, flush=True)
+        print(f"Message {method_frame.delivery_tag} could not be processed and will be discarded: {e}", flush=True)
+        channel.basic_nack(delivery_tag=method_frame.delivery_tag, requeue=False)
 
 
 while True:
